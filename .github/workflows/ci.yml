@@ -49,8 +49,7 @@ jobs:
       TEST_DB_NAME: misskey_test
       TEST_DB_USER: mk
       TEST_DB_PASS: mk
-      # DB が無いときに、DB を使うテストを skip で通さず落とす。
-      MK_PLUGIN_TESTS_REQUIRE_DB: "1"
+      # このプラグインのテストは、DB に繋がらないと skip せずに落ちる (testDB)。
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

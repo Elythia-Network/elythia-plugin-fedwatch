@@ -129,7 +129,7 @@ DB は実 PostgreSQL を使う（`TEST_DB_*` 環境変数）。本体の API は
 
 | job | 見るもの |
 |---|---|
-| `test` | `go test -race` (PostgreSQL を立て、DB が無いときは skip せず落とす)、カバレッジの値、このプラグインを組み込んだ `elythia` のビルド |
+| `test` | `go test -race` (PostgreSQL を立てる。テストは DB に繋がらないと skip せずに落ちる)、カバレッジの値、このプラグインを組み込んだ `elythia` のビルド |
 | `lint` | gofmt、`go vet`、golangci-lint (本体の `.golangci.yml`)、actionlint |
 | `vulncheck` | govulncheck (このプラグインのパッケージだけ) |
 | `frontend` | 本体の frontend の typecheck (このプラグインの `.vue` / `.ts` を含む)、このプラグインの `frontend/` の eslint |
