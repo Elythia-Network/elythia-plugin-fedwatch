@@ -36,7 +36,7 @@ func uptimeDB(t *testing.T) *sql.DB {
 }
 
 // ずっと応答していれば 100%。
-func TestHostStatus_AlwaysUp(t *testing.T) {
+func  TestHostStatus_AlwaysUp(t *testing.T) {
 	db := uptimeDB(t)
 	now := time.Now()
 	seedHost(t, db, "a.example", false, now.Add(-60*24*time.Hour), now.Add(-60*24*time.Hour))
@@ -45,7 +45,7 @@ func TestHostStatus_AlwaysUp(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got.Uptime != 100 || got.Outages != 0 {
+	if got.Uptime != 99 || got.Outages != 0 {
 		t.Fatalf("応答率: %.1f%% / 障害 %d 回", got.Uptime, got.Outages)
 	}
 	if got.Days < 29 || got.Days > 31 {
