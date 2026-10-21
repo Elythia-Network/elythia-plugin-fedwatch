@@ -24,6 +24,7 @@ import { api, since, uptimeTone } from './api.js';
 import type { HostStatus } from './api.js';
 
 const props = defineProps<{ ctx: SlotContext }>();
+const broken: number = 'x';
 
 const data = ref<HostStatus | null>(null);
 
