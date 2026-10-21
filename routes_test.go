@@ -78,8 +78,15 @@ func (c *fakeCaller) Call(_ context.Context, endpoint string, params any) (json.
 		return nil, fmt.Errorf("想定外の endpoint: %s", endpoint)
 	}
 	c.api.calls++
+	// map 以外で渡されると下の検査が何も見ずに通るので、ここで落とす。
+	m, ok := params.(map[string]any)
+	if !ok {
+		return nil, fmt.Errorf("引数が map[string]any ではない: %T", params)
+	}
+	if err := checkInstancesParams(m); err != nil {
+		return nil, err
+	}
 	// offset からページを決める。offset ページングが正しく進むかを見るため。
-	m, _ := params.(map[string]any)
 	offset, _ := m["offset"].(int)
 	size, _ := m["limit"].(int)
 	if size <= 0 {
@@ -90,6 +97,47 @@ func (c *fakeCaller) Call(_ context.Context, endpoint string, params any) (json.
 		return json.Marshal([]apiInstance{})
 	}
 	return json.Marshal(c.api.pages[idx])
+}
+
+// upstreamInstancesParams lists the properties of the upstream Misskey
+// paramDef for federation/instances, and upstreamInstancesSorts the values of
+// its sort enum (null is allowed too).
+var (
+	upstreamInstancesParams = map[string]bool{
+		"host": true, "blocked": true, "notResponding": true, "suspended": true,
+		"silenced": true, "federating": true, "subscribing": true, "publishing": true,
+		"limit": true, "offset": true, "sort": true,
+	}
+	upstreamInstancesSorts = map[string]bool{
+		"+pubSub": true, "-pubSub": true, "+notes": true, "-notes": true,
+		"+users": true, "-users": true, "+following": true, "-following": true,
+		"+followers": true, "-followers": true,
+		"+firstRetrievedAt": true, "-firstRetrievedAt": true,
+		"+latestRequestReceivedAt": true, "-latestRequestReceivedAt": true,
+	}
+)
+
+// checkInstancesParams rejects what the upstream paramDef does not declare.
+//
+// **本体は引数の検証を本家の paramDef に揃える(本体の #3667)。** 揃った後は
+// enum や型に合わない値が 400 になり、取り込みが止まる。引数の名前は 400 に
+// ならない(本家の paramDef は additionalProperties を false にしていない)。
+// それでも名前を見るのは、本体が独自に足した引数に頼っていないことを
+// 確かめるためで、頼っていると本家に揃えたときに黙って効かなくなりうる。
+func checkInstancesParams(m map[string]any) error {
+	for k, v := range m {
+		if !upstreamInstancesParams[k] {
+			return fmt.Errorf("本家の paramDef に無い引数: %s", k)
+		}
+		if k != "sort" || v == nil {
+			continue
+		}
+		s, ok := v.(string)
+		if !ok || !upstreamInstancesSorts[s] {
+			return fmt.Errorf("本家の sort の enum に無い値: %v", v)
+		}
+	}
+	return nil
 }
 
 // setup wires the plugin against a throwaway schema, handing back the DB so

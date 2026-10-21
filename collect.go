@@ -53,8 +53,10 @@ func collect(c context.Context, ctx plugin.Context, db *sql.DB, set settings) (i
 		raw, err := caller.Call(c, "federation/instances", map[string]any{
 			"limit":  set.PageSize,
 			"offset": offset,
-			// 並びを固定しないと offset ページングが重複・欠落する。
-			"sort": "+id",
+			// 並びを固定しないと offset ページングが重複・欠落する。**sort は
+			// 渡さない。** 既定の並び(id の降順)は本家も本体も同じで、順が
+			// 決まる。本家の paramDef の enum に無い値(以前の "+id")は、本体が
+			// 引数の検証を本家に揃えると 400 になる(本体の #3667)。
 		})
 		if err != nil {
 			return total, fmt.Errorf("federation/instances: %w", err)
