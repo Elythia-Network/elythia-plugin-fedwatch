@@ -232,6 +232,14 @@ jobs:
         working-directory: elythia/frontend
         run: pnpm --filter frontend run typecheck
 
+      # **本体の src/ の下へ写してから当てる。** 本体の eslint の設定は
+      # `src/**` だけを対象にし、設定ファイルのディレクトリの外のファイルは
+      # 無視するので、plugins/ の下のままでは何も検査しない。行番号は元の
+      # ファイルと同じで、パスだけが src/_plugin_lint/<名前>/ になる。
       - name: eslint
         working-directory: elythia/frontend/packages/frontend
-        run: pnpm exec eslint "../../../plugins/$PLUGIN_NAME/frontend"
+        run: |
+          dest="src/_plugin_lint/$PLUGIN_NAME"
+          mkdir -p "$(dirname "$dest")"
+          cp -R "../../../plugins/$PLUGIN_NAME/frontend" "$dest"
+          pnpm exec eslint "$dest"
